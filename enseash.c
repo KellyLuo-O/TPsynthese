@@ -66,6 +66,11 @@ int main (int argc, char *argv[])
 		char *command = readConsole();
 		command[strcspn(command, "\n")] = 0;	// supprime le retourn a la ling \n à la fin de la commande 
 		
+		// gestion du exit 
+		 if (strcmp(command, "exit") == 0) {
+            displayTxtConsole("byebye.txt");
+            exit(EXIT_SUCCESS);
+        }
 		
 		// fork et on verifie qu'il n'y a pas d'erreur
 		pid_t pid = fork();
