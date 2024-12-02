@@ -67,11 +67,7 @@ int main (int argc, char *argv[])
 		command[strcspn(command, "\n")] = 0;	// supprime le retourn a la ling \n à la fin de la commande 
 		
 		
-		// fork et on verifie qu'il n'y a pas d'erreur 
-		
-		//if(command == "exit")
-			printf(command);
-		
+		// fork et on verifie qu'il n'y a pas d'erreur
 		pid_t pid = fork();
 		if(pid < 0){
 			perror("Erreur lors du fork");
