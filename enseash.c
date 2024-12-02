@@ -3,15 +3,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #define BUFSIZE 128
 
-/*
- * Fonction displayTxtConsole(char *path)
+/* void displayTxtConsole(char *path)
  * 
  * prend en argument le chemin du fichier à afficher 
  * et afficher le contenu du fichier dans la console standard output 
- * 
  */
 void displayTxtConsole(char *path)
 {
@@ -39,11 +38,64 @@ void displayTxtConsole(char *path)
 }
 
 
+/* string readConsole(void)
+ * 
+ * lit ce qui est écrit dans la console et le retourne en string 
+ */
+char *readConsole(void) 
+{
+	ssize_t ret; 
+	char *buf = malloc(BUFSIZE);
+	
+	// on lit la console et on met le truc dans la variable str
+	ret = read(STDIN_FILENO, buf, BUFSIZE - 1);
+
+	if (ret == -1){ perror("error in read");}
+	
+	buf[ret] = '\0';
+	
+	return buf;
+}
+
 int main (int argc, char *argv[]) 
 {
 	
 	displayTxtConsole("welcome.txt");
-	displayTxtConsole("prompt.txt");
+	
+	while(1) 
+	{
+		displayTxtConsole("prompt.txt");
+		char *command = readConsole();
+		command[strcspn(command, "\n")] = 0;	// supprime le retourn a la ling \n à la fin de la commande 
+		
+		
+		// fork et on verifie qu'il n'y a pas d'erreur 
+		pid_t pid = fork();
+		if(pid < 0){
+			perror("Erreur lors du fork");
+			return EXIT_FAILURE;
+		}
+		
+		// le fork enfant execute la commande 
+		if (pid == 0) {
+			execvp(command, (char *[]) {command, NULL}); // on execute la commande en ajoute le NULL à la fin de la chaine
+			perror("Erreur lors de l'exécution de la commande");
+			exit(EXIT_FAILURE);
+		}
+		// le fork parent attend au cas ou son enfant se fait tué 
+		else 
+		{
+			int status; 
+			wait(&status);
+			if (!WIFEXITED(status)) 
+			{
+				fprintf(stderr, "Le fils s'est terminé de manière inattendue. \n");
+				return EXIT_FAILURE;
+			}
+		}
+		
+	}
+	
 	
 }
 

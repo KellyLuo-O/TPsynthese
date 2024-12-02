@@ -1,2 +1,2 @@
 Bienvenue dans le Shell ENSEA.
-Pour quittez, tapez 'exit'.
+Pour quitter, tapez 'exit'.
