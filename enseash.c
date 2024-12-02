@@ -47,12 +47,10 @@ char *readConsole(void)
 	ssize_t ret; 
 	char *buf = malloc(BUFSIZE);
 	
-	// on lit la console et on met le truc dans la variable str
+	// on lit la console et on met le truc dans la variable buf
 	ret = read(STDIN_FILENO, buf, BUFSIZE - 1);
 
 	if (ret == -1){ perror("error in read");}
-	
-	buf[ret] = '\0';
 	
 	return buf;
 }
@@ -70,6 +68,10 @@ int main (int argc, char *argv[])
 		
 		
 		// fork et on verifie qu'il n'y a pas d'erreur 
+		
+		//if(command == "exit")
+			printf(command);
+		
 		pid_t pid = fork();
 		if(pid < 0){
 			perror("Erreur lors du fork");
@@ -89,8 +91,7 @@ int main (int argc, char *argv[])
 			wait(&status);
 			if (!WIFEXITED(status)) 
 			{
-				fprintf(stderr, "Le fils s'est terminé de manière inattendue. \n");
-				return EXIT_FAILURE;
+				exit(EXIT_FAILURE);
 			}
 		}
 		
