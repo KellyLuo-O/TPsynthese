@@ -62,7 +62,10 @@ char *readConsole(void)
  */
 void ifExit(char * command) 
 {
-	 if (strcmp(command, "exit") == 0) {
+	
+	// strcmp compares the string command and "exit\n"
+	// strlen gives the command len 
+	if (strcmp(command, "exit\n") == 0 || strlen(command) == 0) {
 		displayTxtConsole("byebye.txt");
 		exit(EXIT_SUCCESS);
 	}
@@ -78,9 +81,12 @@ int main (int argc, char *argv[])
 	{
 		displayTxtConsole("prompt.txt");
 		char *command = readConsole();
-		command[strcspn(command, "\n")] = 0;	// delete the \n at the end of the command
 		
+		// if the command exit -> byebye...
 		ifExit(command);
+		
+		// delete the \n at the end of the command
+		command[strcspn(command, "\n")] = 0;	
 		
 		// fork and we check there is no error 
 		pid_t pid = fork();
