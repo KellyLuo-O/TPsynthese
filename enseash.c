@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 
 #define BUFSIZE 128
+#define STATUS_CODE 0
+#define STATUS_SIGN 1
 
 /* void displayTxtConsole(char *path)
  * 
@@ -62,7 +64,6 @@ char *readConsole(void)
  */
 void ifExit(char * command) 
 {
-	
 	// strcmp compares the string command and "exit\n"
 	// strlen gives the command len 
 	if (strcmp(command, "exit\n") == 0 || strlen(command) == 0) {
@@ -71,15 +72,45 @@ void ifExit(char * command)
 	}
 }
 
+/* void displayPromptCode(int code) 
+ * 
+ * display prompt with exit or signal code 
+ */
+void displayPromptCode(int code, int status) 
+{
+	// we prepare in a buffer buf the prompt with code exit or sign 
+	char *buf = malloc(BUFSIZE);
+	switch (status)
+	{
+		case STATUS_CODE : 
+		{
+			sprintf(buf, "enseash [code:%d] %% ", code); break;
+		}	 
+		case STATUS_SIGN : 
+		{
+			sprintf(buf, "enseash [sign:%d] %% ", code); break;
+		}
+	}
+	
+	// we send in the console the prompt with code
+	if(write(STDOUT_FILENO, buf, BUFSIZE) == -1) {
+		perror("error in write");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
 int main (int argc, char *argv[]) 
 {
 	int status; 
+	int code;
 	// displays welcome message 
 	displayTxtConsole("welcome.txt");
 	
+	displayTxtConsole("prompt.txt");
+	
 	while(1) 
 	{
-		displayTxtConsole("prompt.txt");
 		char *command = readConsole();
 		
 		// if the command exit -> byebye...
@@ -106,10 +137,18 @@ int main (int argc, char *argv[])
 		{
 			wait(&status);
 			if (!WIFEXITED(status)) 
-			{
 				exit(EXIT_FAILURE);
+			else if (WIFEXITED(status))
+			{
+				code = WEXITSTATUS(status);
+				displayPromptCode(code, STATUS_CODE);
+			} 
+			else if (WIFSIGNALED(status)) 
+			{
+				code = WTERMSIG(status);
+				displayPromptCode(code, STATUS_SIGN);
 			}
-		}	
+		}
 	}
 }
 
