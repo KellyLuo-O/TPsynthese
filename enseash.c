@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <time.h>
 
 #define BUFSIZE 128
 #define STATUS_CODE 0
@@ -76,7 +77,7 @@ void ifExit(char * command)
  * 
  * display prompt with exit or signal code 
  */
-void displayPromptCode(int code, int status) 
+void displayPromptCode(int code, int status, long timeMiliSec) 
 {
 	// we prepare in a buffer buf the prompt with code exit or sign 
 	char *buf = malloc(BUFSIZE);
@@ -84,11 +85,11 @@ void displayPromptCode(int code, int status)
 	{
 		case STATUS_CODE : 
 		{
-			sprintf(buf, "enseash [code:%d] %% ", code); break;
+			sprintf(buf, "enseash [code:%d|%ld ms] %% ", code, timeMiliSec); break;
 		}	 
 		case STATUS_SIGN : 
 		{
-			sprintf(buf, "enseash [sign:%d] %% ", code); break;
+			sprintf(buf, "enseash [sign:%d|%ld ms] %% ", code, timeMiliSec); break;
 		}
 	}
 	
@@ -104,6 +105,10 @@ int main (int argc, char *argv[])
 {
 	int status; 
 	int code;
+	struct timespec timeStart;
+	struct timespec timeEnd;
+	long timeMiliSec = 0;
+	
 	// displays welcome message 
 	displayTxtConsole("welcome.txt");
 	
@@ -122,31 +127,45 @@ int main (int argc, char *argv[])
 		// fork and we check there is no error 
 		pid_t pid = fork();
 		if(pid < 0){
-			perror("Erreur forking");
+			perror("Error forking");
 			return EXIT_FAILURE;
 		}
 		
-		// the fork children execute the command with
+		// we get the start time after forking
+		if (clock_gettime(CLOCK_MONOTONIC, &timeStart) == -1) { perror("Error getting time");}
+		
+		// the fork children execute the command 
 		if (pid == 0) {
-			execvp(command, (char *[]) {command, NULL}); // children execute command 
-			perror("Erreur when executing command");
-			exit(EXIT_FAILURE);
+			
+			if (strlen(command) != 0) {
+				execvp(command, (char *[]) {command, NULL}); // children execute command 
+				perror("Erreur when executing command");
+				exit(EXIT_FAILURE);
+			}
+			else 
+				displayTxtConsole("prompt.txt");
+				
 		}
 		// the fork parent wait in case something wrong happens to his children
 		else 
 		{
 			wait(&status);
+			
+			// we get end time after the process is done et we calculate elapsed time
+			if (clock_gettime(CLOCK_MONOTONIC, &timeEnd) == -1) { perror("Error getting time");}
+			timeMiliSec =  ((timeEnd.tv_sec - timeStart.tv_sec) * 1000) + ((timeEnd.tv_nsec - timeStart.tv_nsec) / 1000000);
+			
 			if (!WIFEXITED(status)) 
 				exit(EXIT_FAILURE);
-			else if (WIFEXITED(status))
+			else if (WIFEXITED(status))		// in case of exit with exit code
 			{
 				code = WEXITSTATUS(status);
-				displayPromptCode(code, STATUS_CODE);
+				displayPromptCode(code, STATUS_CODE, timeMiliSec);
 			} 
-			else if (WIFSIGNALED(status)) 
+			else if (WIFSIGNALED(status)) 	// in case of exit with sign 
 			{
 				code = WTERMSIG(status);
-				displayPromptCode(code, STATUS_SIGN);
+				displayPromptCode(code, STATUS_SIGN, timeMiliSec);
 			}
 		}
 	}
