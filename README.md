@@ -1,8 +1,7 @@
 # TPsynthese
 
-ENSEA Tiny Shell (enseash)
 Project Overview
-ENSEA Tiny Shell (enseash) is a simple shell application developed as part of the Synthesis Practical Work for 2nd-year Computer Science students. The goal is to create a lightweight shell that executes commands, displays return codes, measures execution times, and manages more advanced features like I/O redirection, piping, and background processes.
+ENSEA Tiny Shell (enseash) is a simple shell application developed as part of the TP de Synthèse for 2nd-year Computer Science students. The goal is to create a lightweight shell that executes commands, displays return codes, measures execution times, and manages more advanced features like I/O redirection, piping, and background processes.
 
 Features
 - Welcome Message and Basic Prompt
